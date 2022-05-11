@@ -3,7 +3,7 @@
 import pymysql
 import time
 import maskpass
-
+import functools
 def mysqlconnect():
     host = input("Enter your host: ")
     username = input("Enter your username: ")
@@ -16,19 +16,25 @@ def mysqlconnect():
         db = db_name,
         )
     cur =conn.cursor()
-    min_id=1
+#    min_id=1
     max_id=150
-
-    for i in range(min_id,max_id,5):
-        second_value=i+4
-        query=(f"update employee_table set name = 'mano' where name ='antrow' and id BETWEEN {i} and {second_value};")
-        cur.execute(query)
-        conn.commit()
-        time.sleep(3)
-        print(f'Done {second_value}')
+    min_query=("select min(id) from audit_activity where updated_at is null;")
+    cur.execute(min_query)
+    output = cur.fetchone()
+    min_id = functools.reduce(lambda sub, ele: sub * 10 + ele, output)
+    print(min_id)
+    if min_id < max_id:
+        for i in range(min_id,max_id,5):
+            second_value=i+4
+            query=(f"update audit_activity set updated_at=ADDTIME(created_at,3)where updated_at is null and id BETWEEN {i} and {second_value};")
+            cur.execute(query)
+            conn.commit()
+            time.sleep(5)
+#           print(f'Done {second_value}')
 #        output = cur.fetchall()
 #        for i in output:
 #            print(i)
+
 
     conn.close()
 
